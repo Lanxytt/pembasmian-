@@ -1,0 +1,173 @@
+<!-- language: HTML/JS, file: admin.html, target: Web Browser (Dashboard Hacker dengan Preview Struk Presisi) -->
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>JBIC Cyber Panel // Command Center</title>
+    <style>
+        body { font-family: 'Courier New', Courier, monospace; background: #030712; color: #00ff66; margin: 0; padding: 20px; display: flex; justify-content: center; box-sizing: border-box; }
+        .panel { background: #0b0f19; border: 1px solid #00ff66; padding: 25px; box-shadow: 0 0 15px rgba(0, 255, 102, 0.15); border-radius: 6px; width: 600px; }
+        h2 { text-align: center; border-bottom: 1px dashed #00ff66; padding-bottom: 10px; text-shadow: 0 0 8px rgba(0,255,102,0.5); font-size: 18px; }
+        label { display: block; margin-top: 10px; font-size: 12px; color: #38bdf8; }
+        input, select { width: 100%; padding: 8px; margin-top: 4px; background: #030712; border: 1px solid #1e293b; color: #00ff66; font-family: monospace; border-radius: 4px; box-sizing: border-box; }
+        input:focus, select:focus { border-color: #00ff66; outline: none; box-shadow: 0 0 5px rgba(0,255,102,0.4); }
+        .box-link { margin-top: 15px; background: #030712; border: 1px dashed #38bdf8; padding: 12px; border-radius: 4px; }
+        .link-output { word-break: break-all; color: #38bdf8; font-size: 11px; margin-top: 5px; }
+        .btn-action { margin-top: 10px; width: 100%; background: #00ff66; color: #030712; border: none; padding: 10px; font-weight: bold; cursor: pointer; font-family: monospace; border-radius: 4px; font-size: 13px; }
+        .btn-action:hover { background: #00cc52; }
+        .btn-preview { background: #38bdf8; color: #030712; }
+        .btn-preview:hover { background: #0284c7; }
+
+        /* Modal Overlay & Struk Potret */
+        .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.85); justify-content: center; align-items: center; }
+        .modal-content { background: #fff; color: #000; padding: 25px 20px; border-radius: 12px; width: 340px; min-height: 560px; font-family: Arial, sans-serif; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.6); display: flex; flex-direction: column; justify-content: space-between; box-sizing: border-box; }
+        .close-btn { position: absolute; top: 10px; right: 15px; font-size: 18px; font-weight: bold; color: #64748b; cursor: pointer; }
+        
+        /* Struk Styling Sesuai Referensi */
+        .receipt-header { text-align: center; margin-bottom: 10px; }
+        .receipt-logo { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 4px; }
+        .receipt-logo img, .receipt-logo .logo-icon { width: 24px; height: 24px; background: #990000; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; }
+        .receipt-logo-text { font-size: 15px; font-weight: bold; color: #111; letter-spacing: 0.5px; }
+        .receipt-sub { font-size: 10px; color: #555; text-transform: uppercase; letter-spacing: 0.5px; }
+        .receipt-title { font-size: 13px; font-weight: bold; color: #111; margin-top: 12px; text-align: center; }
+        .receipt-subtitle { font-size: 10px; color: #666; text-align: center; margin-bottom: 12px; }
+        
+        .amount-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; text-align: center; margin-bottom: 15px; }
+        .amount-label { font-size: 10px; color: #64748b; margin-bottom: 4px; }
+        .amount-idr { font-size: 18px; font-weight: bold; color: #0f172a; }
+        .amount-yen { font-size: 14px; font-weight: bold; color: #334155; margin-top: 2px; }
+
+        .details-section { font-size: 11px; color: #334155; border-top: 1px solid #eee; padding-top: 10px; }
+        .d-row { display: flex; justify-content: space-between; margin-bottom: 8px; }
+        .d-label { color: #64748b; }
+        .d-val { font-weight: bold; color: #1e293b; text-align: right; }
+
+        .p-btn { width: 100%; padding: 12px; background: #2563eb; color: #fff; border: none; border-radius: 6px; font-weight: bold; font-size: 13px; cursor: pointer; text-align: center; margin-top: 10px; }
+        .p-btn:hover { background: #1d4ed8; }
+    </style>
+</head>
+<body>
+
+<div class="panel">
+    <h2>[JBIC // CONTROL INTERFACE]</h2>
+    
+    <label>Nama Pengirim (Luar Negeri):</label>
+    <input type="text" id="senderName" value="JBIC Global Fund" oninput="updateData()">
+
+    <label>Bank Pengirim:</label>
+    <input type="text" id="senderBank" value="Japan Bank for International Cooperation" oninput="updateData()">
+
+    <label>Bank Tujuan (Lokal Indonesia):</label>
+    <select id="receiverBank" onchange="updateData()">
+        <option value="Bank BRI">Bank BRI</option>
+        <option value="Bank Jago">Bank Jago</option>
+        <option value="Bank Mandiri">Bank Mandiri</option>
+        <option value="BCA">BCA</option>
+    </select>
+
+    <label>No Rekening Penerima:</label>
+    <input type="text" id="receiverAcc" value="9876543210" oninput="updateData()">
+
+    <label>Nama Penerima (Lokal):</label>
+    <input type="text" id="receiverName" value="Target Operasi" oninput="updateData()">
+
+    <label>Nominal IDR:</label>
+    <input type="text" id="amountIdr" value="IDR 530.000.000" oninput="updateData()">
+
+    <label>Nominal YEN:</label>
+    <input type="text" id="amountYen" value="YEN 4,755" oninput="updateData()">
+
+    <button class="btn-action btn-preview" onclick="openModal()">Lihat Struk Presisi</button>
+
+    <div class="box-link">
+        <strong>Generated Masked Link (Official JBIC Style):</strong>
+        <div class="link-output" id="finalLink">-</div>
+        <button class="btn-action" onclick="copyLink()">Salin Link Resmi</button>
+    </div>
+</div>
+
+<!-- Modal Struk Presisi Sesuai Referensi -->
+<div id="previewModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeModal()">&times;</span>
+        <div>
+            <div class="receipt-header">
+                <div class="receipt-logo">
+                    <div class="logo-icon">円</div>
+                    <div class="receipt-logo-text">国際協力銀行</div>
+                </div>
+                <div class="receipt-sub">JBIC JAPAN BANK FOR INTERNATIONAL COOPERATION</div>
+                <div class="receipt-title">JBIC JAPAN BANK INTERNATIONAL</div>
+                <div class="receipt-subtitle">Office Purchasing</div>
+            </div>
+
+            <div class="amount-box">
+                <div class="amount-label">Amount Received</div>
+                <div class="amount-idr" id="prevAmountIdr">-</div>
+                <div class="amount-yen" id="prevAmountYen">-</div>
+            </div>
+
+            <div class="details-section">
+                <div class="d-row"><span class="d-label">Sender Bank</span><span class="d-val" id="prevSenderBank">-</span></div>
+                <div class="d-row"><span class="d-label">Sender Name</span><span class="d-val" id="prevSenderName">-</span></div>
+                <div class="d-row"><span class="d-label">Dest Bank</span><span class="d-val" id="prevReceiverBank">-</span></div>
+                <div class="d-row"><span class="d-label">Account No</span><span class="d-val" id="prevReceiverAcc">-</span></div>
+                <div class="d-row"><span class="d-label">Beneficiary</span><span class="d-val" id="prevReceiverName">-</span></div>
+                <div class="d-row"><span class="d-label">Timestamp</span><span class="d-val" id="prevTime">-</span></div>
+            </div>
+        </div>
+        
+        <button class="p-btn">SIGNATURE PHOTO</button>
+    </div>
+</div>
+
+<script>
+    function updateData() {
+        const sb = document.getElementById('senderBank').value;
+        const sn = document.getElementById('senderName').value;
+        const rb = document.getElementById('receiverBank').value;
+        const ra = document.getElementById('receiverAcc').value;
+        const rn = document.getElementById('receiverName').value;
+        const aidr = document.getElementById('amountIdr').value;
+        const ayen = document.getElementById('amountYen').value;
+
+        document.getElementById('prevSenderBank').innerText = sb;
+        document.getElementById('prevSenderName').innerText = sn;
+        document.getElementById('prevReceiverBank').innerText = rb;
+        document.getElementById('prevReceiverAcc').innerText = ra;
+        document.getElementById('prevReceiverName').innerText = rn;
+        document.getElementById('prevAmountIdr').innerText = aidr;
+        document.getElementById('prevAmountYen').innerText = ayen;
+        document.getElementById('prevTime').innerText = new Date().toISOString().replace('T', ' ').substring(0, 16);
+
+        const maskedBase = "https://www.jbic.go.jp/en/global-fund/verify/transaction";
+        const targetUrl = `${maskedBase}?sb=${encodeURIComponent(sb)}&sn=${encodeURIComponent(sn)}&rb=${encodeURIComponent(rb)}&ra=${encodeURIComponent(ra)}&rn=${encodeURIComponent(rn)}&aidr=${encodeURIComponent(aidr)}&ayen=${encodeURIComponent(ayen)}`;
+        document.getElementById('finalLink').innerText = targetUrl;
+    }
+
+    function openModal() {
+        document.getElementById('previewModal').style.display = 'flex';
+    }
+
+    function closeModal() {
+        document.getElementById('previewModal').style.display = 'none';
+    }
+
+    function copyLink() {
+        const text = document.getElementById('finalLink').innerText;
+        navigator.clipboard.writeText(text);
+        alert('Link resmi tersalin.');
+    }
+
+    window.onclick = function(event) {
+        let modal = document.getElementById('previewModal');
+        if (event.target == modal) {
+            closeModal();
+        }
+    }
+
+    updateData();
+</script>
+
+</body>
+</html>
